@@ -1,0 +1,29 @@
+/* تنسيق المجلدات */
+select, input[type="file"], input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+h3 {
+    color: blue; /* جعل العنوان يظهر باللون الأزرق */
+}
+
+option {
+    background-color: lightblue; /* جعل خلفية الخيارات داخل القائمة تظهر باللون الأزرق */
+}
