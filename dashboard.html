@@ -6,38 +6,153 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: Arial; background: #f2f2f2; padding: 20px; }
-    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 0 10px #ccc; }
-    input, textarea, select, button { width: 100%; padding: 10px; margin-top: 10px; }
-    .question-box { background: #f9f9f9; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
-    .delete-btn { color: white; background: red; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; float: left; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f0f4f8;
+      padding: 20px;
+      margin: 0;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #5e6a7b;
+      margin-bottom: 40px;
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .section-title {
+      margin-top: 30px;
+      font-size: 22px;
+      color: #4CAF50;
+    }
+
+    .item-box {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    .delete-btn {
+      background-color: red;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .delete-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .form-column {
+      flex: 1;
+    }
+
+    .form-column input, .form-column textarea, .form-column select {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>لوحة التحكم - إضافة سؤال</h2>
-  <input type="text" id="subject" placeholder="اسم المادة" />
-  <input type="text" id="lecture" placeholder="اسم المحاضرة" />
-  <input type="text" id="question" placeholder="اكتب نص السؤال" />
-  <textarea id="options" placeholder="اكتب 5 خيارات كل واحد في سطر"></textarea>
-  <select id="correct">
-    <option value="">اختر رقم الإجابة الصحيحة</option>
-    <option value="0">الخيار 1</option>
-    <option value="1">الخيار 2</option>
-    <option value="2">الخيار 3</option>
-    <option value="3">الخيار 4</option>
-    <option value="4">الخيار 5</option>
-  </select>
-  <button onclick="addQuestion()">إضافة السؤال</button>
-  <p id="msg"></p>
+  <div class="container">
+    <h2>لوحة التحكم - إضافة مادة / محاضرة / سؤال</h2>
 
-  <h3>جميع الأسئلة:</h3>
-  <div id="questionList"></div>
-</div>
+    <!-- إضافة مادة -->
+    <div class="form-row">
+      <div class="form-column">
+        <input type="text" id="subjectName" placeholder="اسم المادة" />
+      </div>
+      <div class="form-column">
+        <button onclick="addSubject()">إضافة مادة</button>
+      </div>
+    </div>
 
-<script>
-  const firebaseConfig = {
+    <!-- إضافة محاضرة -->
+    <div class="form-row">
+      <div class="form-column">
+        <input type="text" id="lectureName" placeholder="اسم المحاضرة" />
+      </div>
+      <div class="form-column">
+        <select id="subjectSelect">
+          <option value="">اختر المادة</option>
+        </select>
+        <button onclick="addLecture()">إضافة محاضرة</button>
+      </div>
+    </div>
+
+    <!-- إضافة سؤال -->
+    <div class="form-row">
+      <div class="form-column">
+        <textarea id="questionText" placeholder="نص السؤال" rows="3"></textarea>
+      </div>
+      <div class="form-column">
+        <textarea id="optionsText" placeholder="اكتب 5 خيارات كل واحد في سطر" rows="5"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-column">
+        <select id="correctOption">
+          <option value="">اختر الإجابة الصحيحة</option>
+          <option value="0">الخيار 1</option>
+          <option value="1">الخيار 2</option>
+          <option value="2">الخيار 3</option>
+          <option value="3">الخيار 4</option>
+          <option value="4">الخيار 5</option>
+        </select>
+      </div>
+      <div class="form-column">
+        <button onclick="addQuestion()">إضافة سؤال</button>
+      </div>
+    </div>
+
+    <div id="msg"></div>
+
+    <!-- عرض المواد والمعلومات -->
+    <div class="section-title">جميع المواد:</div>
+    <div id="subjectsList"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
   apiKey: "AIzaSyBfaMxkaF-QRPdf24gYCJKeLMarNNQLaBQ",
   authDomain: "storage-5ba27.firebaseapp.com",
   projectId: "storage-5ba27",
@@ -45,57 +160,124 @@
   messagingSenderId: "911744755254",
   appId: "1:911744755254:web:b05fea1f2d26ba9738da97",
   measurementId: "G-SVE6LCGBGE"
-  };
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  async function addQuestion() {
-    const subject = document.getElementById("subject").value;
-    const lecture = document.getElementById("lecture").value;
-    const q = document.getElementById("question").value;
-    const opts = document.getElementById("options").value.trim().split("\n");
-    const correct = parseInt(document.getElementById("correct").value);
+    // إضافة مادة
+    async function addSubject() {
+      const subjectName = document.getElementById("subjectName").value;
+      if (!subjectName) {
+        alert("يرجى إدخال اسم المادة");
+        return;
+      }
 
-    if (!subject || !lecture || !q || opts.length !== 5 || isNaN(correct)) {
-      document.getElementById("msg").innerText = "يرجى إدخال كل الحقول";
-      return;
+      await db.collection("subjects").add({ name: subjectName });
+      document.getElementById("subjectName").value = "";
+      loadSubjects();
     }
 
-    await db.collection("questions").add({ subject, lecture, question: q, options: opts, correct });
-    document.getElementById("msg").innerText = "تمت الإضافة بنجاح!";
-    document.getElementById("subject").value = "";
-    document.getElementById("lecture").value = "";
-    document.getElementById("question").value = "";
-    document.getElementById("options").value = "";
-    document.getElementById("correct").value = "";
-    loadQuestions();
-  }
+    // إضافة محاضرة
+    async function addLecture() {
+      const lectureName = document.getElementById("lectureName").value;
+      const subjectName = document.getElementById("subjectSelect").value;
 
-  async function deleteQuestion(id) {
-    await db.collection("questions").doc(id).delete();
-    loadQuestions();
-  }
+      if (!lectureName || !subjectName) {
+        alert("يرجى اختيار المادة وإدخال اسم المحاضرة");
+        return;
+      }
 
-  async function loadQuestions() {
-    const list = document.getElementById("questionList");
-    list.innerHTML = "";
-    const snapshot = await db.collection("questions").get();
-    snapshot.forEach(doc => {
-      const q = doc.data();
-      const div = document.createElement("div");
-      div.className = "question-box";
-      div.innerHTML = `<strong>المادة:</strong> ${q.subject}<br>
-        <strong>المحاضرة:</strong> ${q.lecture}<br>
-        <strong>السؤال:</strong> ${q.question}<br>
-        ${q.options.map((opt, i) => `${String.fromCharCode(65+i)}- ${opt}`).join("<br>")}
-        <br><strong>الصحيح:</strong> ${String.fromCharCode(65 + q.correct)}
-        <button class="delete-btn" onclick="deleteQuestion('${doc.id}')">حذف</button>`;
-      list.appendChild(div);
-    });
-  }
+      await db.collection("subjects").doc(subjectName).collection("lectures").add({ name: lectureName });
+      document.getElementById("lectureName").value = "";
+      loadLectures(subjectName);
+    }
 
-  loadQuestions();
-</script>
+    // إضافة سؤال
+    async function addQuestion() {
+      const questionText = document.getElementById("questionText").value;
+      const optionsText = document.getElementById("optionsText").value.trim().split("\n");
+      const correctOption = parseInt(document.getElementById("correctOption").value);
+      const subjectName = document.getElementById("subjectSelect").value;
+      const lectureName = document.getElementById("lectureSelect").value;
+
+      if (!questionText || optionsText.length !== 5 || isNaN(correctOption)) {
+        alert("يرجى إدخال جميع الحقول بشكل صحيح");
+        return;
+      }
+
+      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").add({
+        question: questionText,
+        options: optionsText,
+        correct: correctOption
+      });
+      loadQuestions(subjectName, lectureName);
+    }
+
+    // تحميل المواد
+    async function loadSubjects() {
+      const subjectsList = document.getElementById("subjectsList");
+      const snapshot = await db.collection("subjects").get();
+      subjectsList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const subject = doc.data();
+        const subjectDiv = document.createElement("div");
+        subjectDiv.className = "item-box";
+        subjectDiv.innerHTML = `
+          <strong>${subject.name}</strong>
+          <button onclick="deleteSubject('${doc.id}')">حذف</button>
+        `;
+        subjectsList.appendChild(subjectDiv);
+
+        // تحديث قائمة اختيار المادة
+        const subjectSelect = document.getElementById("subjectSelect");
+        const option = document.createElement("option");
+        option.value = subject.name;
+        option.textContent = subject.name;
+        subjectSelect.appendChild(option);
+      });
+    }
+
+    // تحميل المحاضرات
+    async function loadLectures(subjectName) {
+      const lecturesSnapshot = await db.collection("subjects").doc(subjectName).collection("lectures").get();
+      const lectureSelect = document.getElementById("lectureSelect");
+      lectureSelect.innerHTML = "<option value=''>اختر المحاضرة</option>";
+
+      lecturesSnapshot.forEach(doc => {
+        const lecture = doc.data();
+        const option = document.createElement("option");
+        option.value = lecture.name;
+        option.textContent = lecture.name;
+        lectureSelect.appendChild(option);
+      });
+    }
+
+    // تحميل الأسئلة
+    async function loadQuestions(subjectName, lectureName) {
+      const questionsContainer = document.getElementById("questionsContainer");
+      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").get();
+      questionsContainer.innerHTML = "";
+      snapshot.forEach(doc => {
+        const q = doc.data();
+        const div = document.createElement("div");
+        div.className = "item-box";
+        div.innerHTML = `<strong>Q:</strong> ${q.question}<br>
+          ${q.options.map((opt, i) => `${String.fromCharCode(65 + i)}- ${opt}`).join("<br>")}
+          <br><strong>الصحيح:</strong> ${String.fromCharCode(65 + q.correct)}
+          <button class="delete-btn" onclick="deleteQuestion('${doc.id}')">حذف</button>`;
+        questionsContainer.appendChild(div);
+      });
+    }
+
+    // حذف مادة
+    async function deleteSubject(id) {
+      await db.collection("subjects").doc(id).delete();
+      loadSubjects();
+    }
+
+    loadSubjects();
+  </script>
+
 </body>
 </html>
