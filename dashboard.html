@@ -233,6 +233,9 @@
       const subjectsList = document.getElementById("subjectsList");
       const snapshot = await db.collection("subjects").get();
       subjectsList.innerHTML = "";
+      const subjectSelect = document.getElementById("subjectSelect");
+      const subjectSelectForQuestion = document.getElementById("subjectSelectForQuestion");
+
       snapshot.forEach(doc => {
         const subject = doc.data();
         const subjectDiv = document.createElement("div");
@@ -244,14 +247,15 @@
         subjectsList.appendChild(subjectDiv);
 
         // تحديث قائمة اختيار المادة
-        const subjectSelect = document.getElementById("subjectSelect");
-        const subjectSelectForQuestion = document.getElementById("subjectSelectForQuestion");
         const option = document.createElement("option");
         option.value = subject.name;
         option.textContent = subject.name;
         subjectSelect.appendChild(option);
         subjectSelectForQuestion.appendChild(option);
       });
+
+      // إعادة تحميل المحاضرات للمادة المختارة
+      loadLecturesForSubject();
     }
 
     // تحميل المحاضرات الخاصة بالمادة
@@ -272,23 +276,6 @@
         option.textContent = lecture.name;
         lectureSelect.appendChild(option);
         lectureSelectForAdd.appendChild(option);
-      });
-    }
-
-    // تحميل الأسئلة
-    async function loadQuestions(subjectName, lectureName) {
-      const questionsContainer = document.getElementById("questionsContainer");
-      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").get();
-      questionsContainer.innerHTML = "";
-      snapshot.forEach(doc => {
-        const q = doc.data();
-        const div = document.createElement("div");
-        div.className = "item-box";
-        div.innerHTML = `<strong>Q:</strong> ${q.question}<br>
-          ${q.options.map((opt, i) => `${String.fromCharCode(65 + i)}- ${opt}`).join("<br>")}
-          <br><strong>الصحيح:</strong> ${String.fromCharCode(65 + q.correct)}
-          <button class="delete-btn" onclick="deleteQuestion('${doc.id}')">حذف</button>`;
-        questionsContainer.appendChild(div);
       });
     }
 
