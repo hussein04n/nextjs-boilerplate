@@ -189,7 +189,7 @@
 
       await db.collection("subjects").add({ name: subjectName });
       document.getElementById("subjectName").value = "";
-      loadSubjects();
+      loadSubjects(); // تحديث قائمة المواد بعد إضافة المادة
     }
 
     // إضافة محاضرة
@@ -204,7 +204,7 @@
 
       await db.collection("subjects").doc(subjectName).collection("lectures").add({ name: lectureName });
       document.getElementById("lectureName").value = "";
-      loadLecturesForSubject();
+      loadLecturesForSubject(); // تحديث قائمة المحاضرات بعد إضافة المحاضرة
     }
 
     // إضافة سؤال
@@ -235,6 +235,10 @@
       subjectsList.innerHTML = "";
       const subjectSelect = document.getElementById("subjectSelect");
       const subjectSelectForQuestion = document.getElementById("subjectSelectForQuestion");
+
+      // تحديث الخيارات في الـselect
+      subjectSelect.innerHTML = "<option value=''>اختر المادة</option>";
+      subjectSelectForQuestion.innerHTML = "<option value=''>اختر المادة</option>";
 
       snapshot.forEach(doc => {
         const subject = doc.data();
@@ -282,7 +286,7 @@
     // حذف مادة
     async function deleteSubject(id) {
       await db.collection("subjects").doc(id).delete();
-      loadSubjects();
+      loadSubjects(); // تحديث قائمة المواد بعد حذف المادة
     }
 
     loadSubjects();
