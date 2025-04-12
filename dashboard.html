@@ -143,7 +143,10 @@
     // تحميل قائمة المواد
     async function loadSubjects() {
       const subjectsContainer = document.getElementById("subjects-list");
+      const subjectSelect = document.getElementById("lecture-subject");
       subjectsContainer.innerHTML = "";
+      subjectSelect.innerHTML = ""; // مسح قائمة المواد قبل التحميل
+
       const snapshot = await db.collection("subjects").get();
       
       snapshot.forEach(doc => {
@@ -157,7 +160,7 @@
         const option = document.createElement("option");
         option.value = subject.name;
         option.textContent = subject.name;
-        document.getElementById("lecture-subject").appendChild(option);
+        subjectSelect.appendChild(option);
       });
     }
 
@@ -186,29 +189,29 @@
       });
 
       document.getElementById("lecture-name").value = ""; // مسح حقل الإدخال
-      loadLectures(); // إعادة تحميل المحاضرات
+      loadLectures(subjectName); // إعادة تحميل المحاضرات
     }
 
     // تحميل المحاضرات بناءً على المادة المختارة
-    async function loadLectures() {
+    async function loadLectures(subjectName) {
       const lecturesContainer = document.getElementById("lectures-list");
       lecturesContainer.innerHTML = "";
-      const snapshot = await db.collection("subjects").get();
+      const subjectRef = db.collection("subjects").doc(subjectName);
+      const snapshot = await subjectRef.collection("lectures").get();
 
       snapshot.forEach(doc => {
-        const subject = doc.data();
-        const subjectName = doc.id;
+        const lecture = doc.data();
+        const lectureDiv = document.createElement("div");
+        lectureDiv.className = "lecture";
+        lectureDiv.textContent = lecture.name;
+        lecturesContainer.appendChild(lectureDiv);
 
-        subjectRef = db.collection("subjects").doc(subjectName).collection("lectures");
-        subjectRef.get().then(snapshot => {
-          snapshot.forEach(doc => {
-            const lecture = doc.data();
-            const lectureDiv = document.createElement("div");
-            lectureDiv.className = "lecture";
-            lectureDiv.textContent = lecture.name;
-            lecturesContainer.appendChild(lectureDiv);
-          });
-        });
+        // إضافة المحاضرة في قائمة الاختيارات لإضافة سؤال
+        const lectureSelect = document.getElementById("question-lecture");
+        const option = document.createElement("option");
+        option.value = lecture.name;
+        option.textContent = lecture.name;
+        lectureSelect.appendChild(option);
       });
     }
 
@@ -286,10 +289,8 @@
       doc.save("questions.pdf");
     }
 
-    // تحميل المواد والأسئلة عند تحميل الصفحة
-    loadSubjects();
-    loadLectures();
-    loadQuestions();
+    loadSubjects(); // تحميل المواد عند فتح الصفحة
+
   </script>
 </body>
 </html>
