@@ -120,7 +120,6 @@
     let total = 0;
 
     function detectLanguage(text) {
-      // ترجيح اتجاه النص بناءً على أول حرف
       const arabicRange = /[\u0600-\u06FF]/;
       return arabicRange.test(text) ? "rtl" : "ltr";
     }
@@ -133,51 +132,51 @@
       total = 0;
 
       const snapshot = await db.collection("questions").get();
+      const questionsBySubject = {};
+
       snapshot.forEach(doc => {
         const q = doc.data();
         total++;
 
-        const direction = detectLanguage(q.question);
-        const card = document.createElement("div");
-        card.className = `question-card ${direction}`;
+        if (!questionsBySubject[q.subject]) {
+          questionsBySubject[q.subject] = {};
+        }
 
-        const title = document.createElement("p");
-        title.className = "question-text";
-        title.textContent = q.question;
-        card.appendChild(title);
+        if (!questionsBySubject[q.subject][q.lecture]) {
+          questionsBySubject[q.subject][q.lecture] = [];
+        }
 
-        const ul = document.createElement("ul");
-        ul.className = "options";
-
-        q.options.forEach((opt, idx) => {
-          const li = document.createElement("li");
-          li.innerText = String.fromCharCode(65 + idx) + " - " + opt;
-          li.onclick = () => {
-            if (ul.classList.contains("answered")) return;
-
-            ul.querySelectorAll("li").forEach(el => {
-              el.classList.add("disabled");
-            });
-
-            if (idx === q.correct) {
-              li.classList.add("correct");
-              score++;
-            } else {
-              li.classList.add("wrong");
-              ul.children[q.correct].classList.add("correct");
-            }
-
-            ul.classList.add("answered");
-            scoreBox.textContent = `النتيجة: ${score} من ${total}`;
-          };
-          ul.appendChild(li);
-        });
-
-        card.appendChild(ul);
-        container.appendChild(card);
+        questionsBySubject[q.subject][q.lecture].push(q);
       });
 
-      scoreBox.textContent = `النتيجة: 0 من ${total}`;
+      for (const subject in questionsBySubject) {
+        const subjectDiv = document.createElement("div");
+        subjectDiv.className = "subject";
+        const subjectTitle = document.createElement("h3");
+        subjectTitle.textContent = subject;
+        subjectDiv.appendChild(subjectTitle);
+
+        for (const lecture in questionsBySubject[subject]) {
+          const lectureDiv = document.createElement("div");
+          lectureDiv.className = "lecture";
+          const lectureTitle = document.createElement("h4");
+          lectureTitle.textContent = lecture;
+          lectureDiv.appendChild(lectureTitle);
+
+          const questionsList = document.createElement("ul");
+          questionsBySubject[subject][lecture].forEach(q => {
+            const li = document.createElement("li");
+            li.className = "question-card";
+            li.textContent = q.question;
+            questionsList.appendChild(li);
+          });
+
+          lectureDiv.appendChild(questionsList);
+          subjectDiv.appendChild(lectureDiv);
+        }
+
+        container.appendChild(subjectDiv);
+      }
     }
 
     loadQuiz();
