@@ -12,6 +12,7 @@
       background: linear-gradient(to right, #f5f7fa, #c3cfe2);
       padding: 30px;
       margin: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     h2 {
@@ -19,6 +20,11 @@
       color: #333;
       font-size: 32px;
       margin-bottom: 40px;
+    }
+
+    .dark-mode {
+      background-color: #333;
+      color: white;
     }
 
     .question-card {
@@ -96,11 +102,38 @@
       border-radius: 10px;
     }
 
+    #search-box {
+      margin-bottom: 20px;
+      padding: 10px;
+      font-size: 18px;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    .button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
 
   <h2>الأسئلة التفاعلية</h2>
+
+  <input type="text" id="search-box" placeholder="ابحث عن مادة أو محاضرة..." oninput="searchContent()">
+
+  <button class="button" onclick="toggleDarkMode()">تبديل السمة</button>
+
   <div id="subjects-container"></div>
   <div id="lectures-container"></div>
   <div id="questions-container"></div>
@@ -123,6 +156,7 @@
 
     let score = 0;
     let total = 0;
+    let darkMode = false;
 
     async function loadSubjects() {
       const subjectsContainer = document.getElementById("subjects-container");
@@ -203,6 +237,27 @@
       });
 
       document.getElementById("score-box").textContent = `النتيجة: 0 من ${total}`;
+    }
+
+    function toggleDarkMode() {
+      darkMode = !darkMode;
+      if (darkMode) {
+        document.body.classList.add("dark-mode");
+      } else {
+        document.body.classList.remove("dark-mode");
+      }
+    }
+
+    function searchContent() {
+      const query = document.getElementById("search-box").value.toLowerCase();
+      const subjects = document.querySelectorAll('.subject');
+      subjects.forEach(subject => {
+        if (subject.textContent.toLowerCase().includes(query)) {
+          subject.style.display = "block";
+        } else {
+          subject.style.display = "none";
+        }
+      });
     }
 
     loadSubjects();
