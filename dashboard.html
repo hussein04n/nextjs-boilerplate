@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>لوحة التحكم - Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial; background: #f2f2f2; padding: 20px; }
+    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 0 10px #ccc; }
+    input, textarea, select, button { width: 100%; padding: 10px; margin-top: 10px; }
+    .question-box { background: #f9f9f9; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
+    .delete-btn { color: white; background: red; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; float: left; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>لوحة التحكم - إضافة سؤال</h2>
+  <input type="text" id="question" placeholder="اكتب نص السؤال" />
+  <textarea id="options" placeholder="اكتب 5 خيارات كل واحد في سطر"></textarea>
+  <select id="correct">
+    <option value="">اختر رقم الإجابة الصحيحة</option>
+    <option value="0">الخيار 1</option>
+    <option value="1">الخيار 2</option>
+    <option value="2">الخيار 3</option>
+    <option value="3">الخيار 4</option>
+    <option value="4">الخيار 5</option>
+  </select>
+  <button onclick="addQuestion()">إضافة السؤال</button>
+  <p id="msg"></p>
+
+  <h3>جميع الأسئلة:</h3>
+  <div id="questionList"></div>
+</div>
+
+<script>
+  // استبدل القيم التالية بـ config الخاص بمشروعك
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfaMxkaF-QRPdf24gYCJKeLMarNNQLaBQ",
+    authDomain: "storage-5ba27.firebaseapp.com",
+    projectId: "storage-5ba27",
+    storageBucket: "storage-5ba27.firebasestorage.app",
+    messagingSenderId: "911744755254",
+    appId: "1:911744755254:web:b05fea1f2d26ba9738da97"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  async function addQuestion() {
+    const q = document.getElementById("question").value;
+    const opts = document.getElementById("options").value.trim().split("\n");
+    const correct = parseInt(document.getElementById("correct").value);
+
+    if (!q || opts.length !== 5 || isNaN(correct)) {
+      document.getElementById("msg").innerText = "يرجى إدخال كل الحقول";
+      return;
+    }
+
+    await db.collection("questions").add({ question: q, options: opts, correct });
+    document.getElementById("msg").innerText = "تمت الإضافة بنجاح!";
+    document.getElementById("question").value = "";
+    document.getElementById("options").value = "";
+    document.getElementById("correct").value = "";
+    loadQuestions();
+  }
+
+  async function deleteQuestion(id) {
+    await db.collection("questions").doc(id).delete();
+    loadQuestions();
+  }
+
+  async function loadQuestions() {
+    const list = document.getElementById("questionList");
+    list.innerHTML = "";
+    const snapshot = await db.collection("questions").get();
+    snapshot.forEach(doc => {
+      const q = doc.data();
+      const div = document.createElement("div");
+      div.className = "question-box";
+      div.innerHTML = `<strong>Q:</strong> ${q.question}<br>
+        ${q.options.map((opt, i) => `${String.fromCharCode(65+i)}- ${opt}`).join("<br>")}
+        <br><strong>الصحيح:</strong> ${String.fromCharCode(65 + q.correct)}
+        <button class="delete-btn" onclick="deleteQuestion('${doc.id}')">حذف</button>`;
+      list.appendChild(div);
+    });
+  }
+
+  loadQuestions();
+</script>
+</body>
+</html>
