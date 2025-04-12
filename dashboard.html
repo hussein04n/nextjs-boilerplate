@@ -245,22 +245,17 @@
     async function loadQuestions() {
       const questionsContainer = document.getElementById("questions-list");
       questionsContainer.innerHTML = "";
+
       const snapshot = await db.collection("subjects").get();
 
-      snapshot.forEach(doc => {
-        const subject = doc.data();
-        const subjectName = doc.id;
+      snapshot.forEach(subjectDoc => {
+        const subject = subjectDoc.data();
 
-        subjectRef = db.collection("subjects").doc(subjectName).collection("lectures");
-        subjectRef.get().then(snapshot => {
-          snapshot.forEach(doc => {
-            const lecture = doc.data();
-            const lectureName = doc.id;
-
-            lectureRef = subjectRef.doc(lectureName).collection("questions");
-            lectureRef.get().then(snapshot => {
-              snapshot.forEach(doc => {
-                const question = doc.data();
+        subjectDoc.ref.collection("lectures").get().then(lectureSnapshot => {
+          lectureSnapshot.forEach(lectureDoc => {
+            lectureDoc.ref.collection("questions").get().then(questionSnapshot => {
+              questionSnapshot.forEach(questionDoc => {
+                const question = questionDoc.data();
                 const questionDiv = document.createElement("div");
                 questionDiv.className = "question";
                 questionDiv.textContent = question.question;
@@ -290,7 +285,6 @@
     }
 
     loadSubjects(); // تحميل المواد عند فتح الصفحة
-
   </script>
 </body>
 </html>
