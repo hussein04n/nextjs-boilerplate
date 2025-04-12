@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>لوحة التحكم</title>
+  <title>لوحة التحكم - Firebase</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
@@ -17,6 +17,8 @@
 
 <div class="container">
   <h2>لوحة التحكم - إضافة سؤال</h2>
+  <input type="text" id="subject" placeholder="اسم المادة" />
+  <input type="text" id="lecture" placeholder="اسم المحاضرة" />
   <input type="text" id="question" placeholder="اكتب نص السؤال" />
   <textarea id="options" placeholder="اكتب 5 خيارات كل واحد في سطر"></textarea>
   <select id="correct">
@@ -49,17 +51,21 @@
   const db = firebase.firestore();
 
   async function addQuestion() {
+    const subject = document.getElementById("subject").value;
+    const lecture = document.getElementById("lecture").value;
     const q = document.getElementById("question").value;
     const opts = document.getElementById("options").value.trim().split("\n");
     const correct = parseInt(document.getElementById("correct").value);
 
-    if (!q || opts.length !== 5 || isNaN(correct)) {
+    if (!subject || !lecture || !q || opts.length !== 5 || isNaN(correct)) {
       document.getElementById("msg").innerText = "يرجى إدخال كل الحقول";
       return;
     }
 
-    await db.collection("questions").add({ question: q, options: opts, correct });
+    await db.collection("questions").add({ subject, lecture, question: q, options: opts, correct });
     document.getElementById("msg").innerText = "تمت الإضافة بنجاح!";
+    document.getElementById("subject").value = "";
+    document.getElementById("lecture").value = "";
     document.getElementById("question").value = "";
     document.getElementById("options").value = "";
     document.getElementById("correct").value = "";
@@ -79,7 +85,9 @@
       const q = doc.data();
       const div = document.createElement("div");
       div.className = "question-box";
-      div.innerHTML = `<strong>Q:</strong> ${q.question}<br>
+      div.innerHTML = `<strong>المادة:</strong> ${q.subject}<br>
+        <strong>المحاضرة:</strong> ${q.lecture}<br>
+        <strong>السؤال:</strong> ${q.question}<br>
         ${q.options.map((opt, i) => `${String.fromCharCode(65+i)}- ${opt}`).join("<br>")}
         <br><strong>الصحيح:</strong> ${String.fromCharCode(65 + q.correct)}
         <button class="delete-btn" onclick="deleteQuestion('${doc.id}')">حذف</button>`;
