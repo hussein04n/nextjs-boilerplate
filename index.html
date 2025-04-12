@@ -2,117 +2,76 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>أسئلة تفاعلية - Enterobius vermicularis</title>
+  <title>الأسئلة التفاعلية</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f2f2f2;
-      padding: 20px;
-    }
-
+    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
     .question-card {
-      background-color: #fff9e6;
-      border: 2px solid #ffcccc;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 20px auto;
-      max-width: 700px;
+      background: #fff; padding: 20px; border-radius: 10px;
+      box-shadow: 0 0 10px #ddd; margin-bottom: 20px;
     }
-
-    .question-title {
-      background-color: red;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 8px;
-      display: inline-block;
-      margin-bottom: 10px;
-    }
-
-    .question-text {
-      color: #002060;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .options {
-      list-style: none;
-      padding: 0;
-    }
-
     .options li {
-      padding: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 6px;
-      transition: background-color 0.3s;
-      margin-bottom: 6px;
+      padding: 10px; margin: 6px 0; background: #eee;
+      cursor: pointer; border-radius: 6px;
     }
-
-    .options li.correct {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .options li.wrong {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .result-msg {
-      margin-top: 10px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    .result-msg.correct {
-      color: green;
-    }
-
-    .result-msg.wrong {
-      color: red;
-    }
+    .options li.correct { background: #d4edda; color: #155724; }
+    .options li.wrong { background: #f8d7da; color: #721c24; }
+    .result-msg { margin-top: 8px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <!-- السؤال الأول -->
-  <div class="question-card">
-    <h2 class="question-title">سؤال 1</h2>
-    <p class="question-text">
-      ما هو الطريق غير الصحيح للعدوى بـ <em>Enterobius vermicularis</em>؟
-    </p>
-    <ul class="options">
-      <li onclick="checkAnswer(this, false)">A - Self infection</li>
-      <li onclick="checkAnswer(this, false)">B - Inhalation</li>
-      <li onclick="checkAnswer(this, true)">C - Through the skin migration</li>
-      <li onclick="checkAnswer(this, false)">D - Retro infection</li>
-      <li onclick="checkAnswer(this, false)">E - By swimming</li>
-    </ul>
-    <p class="result-msg"></p>
-  </div>
-
-  <!-- يمكنك تكرار هذا النموذج لأسئلة أخرى -->
+  <h2>الأسئلة التفاعلية</h2>
+  <div id="quiz-container"></div>
 
   <script>
-    function checkAnswer(selected, isCorrect) {
-      const card = selected.closest(".question-card");
-      const options = card.querySelectorAll("li");
-      const result = card.querySelector(".result-msg");
+    // انسخ نفس config المستخدم في dashboard
+    const firebaseConfig = {
+      apiKey: "AIzaSyBfaMxkaF-QRPdf24gYCJKeLMarNNQLaBQ",
+      authDomain: "storage-5ba27.firebaseapp.com",
+      projectId: "storage-5ba27",
+      storageBucket: "storage-5ba27.firebasestorage.app",
+      messagingSenderId: "911744755254",
+      appId: "1:911744755254:web:b05fea1f2d26ba9738da97"
+    };
 
-      options.forEach(opt => opt.classList.remove("correct", "wrong"));
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-      if (isCorrect) {
-        selected.classList.add("correct");
-        result.textContent = "إجابة صحيحة!";
-        result.className = "result-msg correct";
-      } else {
-        selected.classList.add("wrong");
-        result.textContent = "إجابة خاطئة، حاول مرة أخرى.";
-        result.className = "result-msg wrong";
-      }
+    async function loadQuiz() {
+      const container = document.getElementById("quiz-container");
+      container.innerHTML = "";
+      const snapshot = await db.collection("questions").get();
+
+      snapshot.forEach(doc => {
+        const q = doc.data();
+        const card = document.createElement("div");
+        card.className = "question-card";
+
+        const title = document.createElement("p");
+        title.innerHTML = "<strong>Q:</strong> " + q.question;
+        card.appendChild(title);
+
+        const ul = document.createElement("ul");
+        ul.className = "options";
+
+        q.options.forEach((opt, idx) => {
+          const li = document.createElement("li");
+          li.innerText = String.fromCharCode(65 + idx) + " - " + opt;
+          li.onclick = () => {
+            ul.querySelectorAll("li").forEach(el => el.classList.remove("correct", "wrong"));
+            li.classList.add(idx === q.correct ? "correct" : "wrong");
+          };
+          ul.appendChild(li);
+        });
+
+        card.appendChild(ul);
+        container.appendChild(card);
+      });
     }
-  </script>
 
+    loadQuiz();
+  </script>
 </body>
 </html>
