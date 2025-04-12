@@ -85,21 +85,26 @@
       color: #2c3e50;
     }
 
-    .ltr {
-      direction: ltr;
-      text-align: left;
+    .subject, .lecture {
+      margin-top: 20px;
+      cursor: pointer;
     }
 
-    .rtl {
-      direction: rtl;
-      text-align: right;
+    .subject:hover, .lecture:hover {
+      background-color: #e6e6e6;
+      padding: 10px;
+      border-radius: 10px;
     }
+
   </style>
 </head>
 <body>
 
   <h2>الأسئلة التفاعلية</h2>
-  <div id="quiz-container"></div>
+  <div id="subjects-container"></div>
+  <div id="lectures-container"></div>
+  <div id="questions-container"></div>
+
   <div id="score-box">النتيجة: 0</div>
 
   <script>
@@ -119,67 +124,88 @@
     let score = 0;
     let total = 0;
 
-    function detectLanguage(text) {
-      const arabicRange = /[\u0600-\u06FF]/;
-      return arabicRange.test(text) ? "rtl" : "ltr";
+    async function loadSubjects() {
+      const subjectsContainer = document.getElementById("subjects-container");
+      subjectsContainer.innerHTML = "";
+      const snapshot = await db.collection("subjects").get();
+      
+      snapshot.forEach(doc => {
+        const subject = doc.data();
+        const subjectDiv = document.createElement("div");
+        subjectDiv.className = "subject";
+        subjectDiv.textContent = subject.name;
+        subjectDiv.onclick = () => loadLectures(subject.name);
+        subjectsContainer.appendChild(subjectDiv);
+      });
     }
 
-    async function loadQuiz() {
-      const container = document.getElementById("quiz-container");
-      const scoreBox = document.getElementById("score-box");
-      container.innerHTML = "";
-      score = 0;
-      total = 0;
+    async function loadLectures(subjectName) {
+      const lecturesContainer = document.getElementById("lectures-container");
+      lecturesContainer.innerHTML = "";
+      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").get();
 
-      const snapshot = await db.collection("questions").get();
-      const questionsBySubject = {};
+      snapshot.forEach(doc => {
+        const lecture = doc.data();
+        const lectureDiv = document.createElement("div");
+        lectureDiv.className = "lecture";
+        lectureDiv.textContent = lecture.name;
+        lectureDiv.onclick = () => loadQuestions(subjectName, lecture.name);
+        lecturesContainer.appendChild(lectureDiv);
+      });
+    }
+
+    async function loadQuestions(subjectName, lectureName) {
+      const questionsContainer = document.getElementById("questions-container");
+      questionsContainer.innerHTML = "";
+      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").get();
 
       snapshot.forEach(doc => {
         const q = doc.data();
         total++;
 
-        if (!questionsBySubject[q.subject]) {
-          questionsBySubject[q.subject] = {};
-        }
+        const card = document.createElement("div");
+        card.className = "question-card";
 
-        if (!questionsBySubject[q.subject][q.lecture]) {
-          questionsBySubject[q.subject][q.lecture] = [];
-        }
+        const title = document.createElement("p");
+        title.className = "question-text";
+        title.textContent = q.question;
+        card.appendChild(title);
 
-        questionsBySubject[q.subject][q.lecture].push(q);
+        const ul = document.createElement("ul");
+        ul.className = "options";
+
+        q.options.forEach((opt, idx) => {
+          const li = document.createElement("li");
+          li.innerText = String.fromCharCode(65 + idx) + " - " + opt;
+          li.onclick = () => {
+            if (ul.classList.contains("answered")) return;
+
+            ul.querySelectorAll("li").forEach(el => {
+              el.classList.add("disabled");
+            });
+
+            if (idx === q.correct) {
+              li.classList.add("correct");
+              score++;
+            } else {
+              li.classList.add("wrong");
+              ul.children[q.correct].classList.add("correct");
+            }
+
+            ul.classList.add("answered");
+            document.getElementById("score-box").textContent = `النتيجة: ${score} من ${total}`;
+          };
+          ul.appendChild(li);
+        });
+
+        card.appendChild(ul);
+        questionsContainer.appendChild(card);
       });
 
-      for (const subject in questionsBySubject) {
-        const subjectDiv = document.createElement("div");
-        subjectDiv.className = "subject";
-        const subjectTitle = document.createElement("h3");
-        subjectTitle.textContent = subject;
-        subjectDiv.appendChild(subjectTitle);
-
-        for (const lecture in questionsBySubject[subject]) {
-          const lectureDiv = document.createElement("div");
-          lectureDiv.className = "lecture";
-          const lectureTitle = document.createElement("h4");
-          lectureTitle.textContent = lecture;
-          lectureDiv.appendChild(lectureTitle);
-
-          const questionsList = document.createElement("ul");
-          questionsBySubject[subject][lecture].forEach(q => {
-            const li = document.createElement("li");
-            li.className = "question-card";
-            li.textContent = q.question;
-            questionsList.appendChild(li);
-          });
-
-          lectureDiv.appendChild(questionsList);
-          subjectDiv.appendChild(lectureDiv);
-        }
-
-        container.appendChild(subjectDiv);
-      }
+      document.getElementById("score-box").textContent = `النتيجة: 0 من ${total}`;
     }
 
-    loadQuiz();
+    loadSubjects();
   </script>
 
 </body>
