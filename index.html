@@ -1,82 +1,118 @@
-<style>
-  .question-card {
-    background-color: #fff9e6;
-    border: 2px solid #ffcccc;
-    border-radius: 12px;
-    padding: 16px;
-    margin: 20px 0;
-    direction: ltr;
-  }
-
-  .question-title {
-    background-color: red;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    display: inline-block;
-    margin-bottom: 10px;
-  }
-
-  .question-text {
-    color: #002060;
-    font-weight: bold;
-  }
-
-  .options {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-  }
-
-  .options li {
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background-color 0.3s;
-  }
-
-  .options li.correct {
-    background-color: #d4edda;
-    color: #155724;
-  }
-
-  .options li.wrong {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-
-  .result-msg {
-    margin-top: 10px;
-    font-weight: bold;
-    font-size: 16px;
-  }
-
-  .result-msg.correct {
-    color: green;
-  }
-
-  .result-msg.wrong {
-    color: red;
-  }
-</style>
-
-<script>
-  function checkAnswer(selected, isCorrect) {
-    const card = selected.closest(".question-card");
-    const options = card.querySelectorAll("li");
-    const result = card.querySelector(".result-msg");
-
-    options.forEach(opt => opt.classList.remove("correct", "wrong"));
-
-    if (isCorrect) {
-      selected.classList.add("correct");
-      result.textContent = "إجابة صحيحة!";
-      result.className = "result-msg correct";
-    } else {
-      selected.classList.add("wrong");
-      result.textContent = "إجابة خاطئة، حاول مرة أخرى.";
-      result.className = "result-msg wrong";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>أسئلة تفاعلية - Enterobius vermicularis</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
     }
-  }
-</script>
+
+    .question-card {
+      background-color: #fff9e6;
+      border: 2px solid #ffcccc;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 20px auto;
+      max-width: 700px;
+    }
+
+    .question-title {
+      background-color: red;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .question-text {
+      color: #002060;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .options {
+      list-style: none;
+      padding: 0;
+    }
+
+    .options li {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+      margin-bottom: 6px;
+    }
+
+    .options li.correct {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .options li.wrong {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .result-msg {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .result-msg.correct {
+      color: green;
+    }
+
+    .result-msg.wrong {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- السؤال الأول -->
+  <div class="question-card">
+    <h2 class="question-title">سؤال 1</h2>
+    <p class="question-text">
+      ما هو الطريق غير الصحيح للعدوى بـ <em>Enterobius vermicularis</em>؟
+    </p>
+    <ul class="options">
+      <li onclick="checkAnswer(this, false)">A - Self infection</li>
+      <li onclick="checkAnswer(this, false)">B - Inhalation</li>
+      <li onclick="checkAnswer(this, true)">C - Through the skin migration</li>
+      <li onclick="checkAnswer(this, false)">D - Retro infection</li>
+      <li onclick="checkAnswer(this, false)">E - By swimming</li>
+    </ul>
+    <p class="result-msg"></p>
+  </div>
+
+  <!-- يمكنك تكرار هذا النموذج لأسئلة أخرى -->
+
+  <script>
+    function checkAnswer(selected, isCorrect) {
+      const card = selected.closest(".question-card");
+      const options = card.querySelectorAll("li");
+      const result = card.querySelector(".result-msg");
+
+      options.forEach(opt => opt.classList.remove("correct", "wrong"));
+
+      if (isCorrect) {
+        selected.classList.add("correct");
+        result.textContent = "إجابة صحيحة!";
+        result.className = "result-msg correct";
+      } else {
+        selected.classList.add("wrong");
+        result.textContent = "إجابة خاطئة، حاول مرة أخرى.";
+        result.className = "result-msg wrong";
+      }
+    }
+  </script>
+
+</body>
+</html>
