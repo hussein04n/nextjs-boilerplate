@@ -112,7 +112,7 @@
         <input type="text" id="lectureName" placeholder="اسم المحاضرة" />
       </div>
       <div class="form-column">
-        <select id="subjectSelect">
+        <select id="subjectSelect" onchange="loadLecturesForSubject()">
           <option value="">اختر المادة</option>
         </select>
         <button onclick="addLecture()">إضافة محاضرة</button>
@@ -122,12 +122,26 @@
     <!-- إضافة سؤال -->
     <div class="form-row">
       <div class="form-column">
+        <select id="subjectSelectForQuestion" onchange="loadLecturesForQuestion()">
+          <option value="">اختر المادة</option>
+        </select>
+      </div>
+      <div class="form-column">
+        <select id="lectureSelectForQuestion">
+          <option value="">اختر المحاضرة</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-column">
         <textarea id="questionText" placeholder="نص السؤال" rows="3"></textarea>
       </div>
       <div class="form-column">
         <textarea id="optionsText" placeholder="اكتب 5 خيارات كل واحد في سطر" rows="5"></textarea>
       </div>
     </div>
+
     <div class="form-row">
       <div class="form-column">
         <select id="correctOption">
@@ -190,7 +204,7 @@
 
       await db.collection("subjects").doc(subjectName).collection("lectures").add({ name: lectureName });
       document.getElementById("lectureName").value = "";
-      loadLectures(subjectName);
+      loadLecturesForSubject();
     }
 
     // إضافة سؤال
@@ -198,10 +212,10 @@
       const questionText = document.getElementById("questionText").value;
       const optionsText = document.getElementById("optionsText").value.trim().split("\n");
       const correctOption = parseInt(document.getElementById("correctOption").value);
-      const subjectName = document.getElementById("subjectSelect").value;
-      const lectureName = document.getElementById("lectureSelect").value;
+      const subjectName = document.getElementById("subjectSelectForQuestion").value;
+      const lectureName = document.getElementById("lectureSelectForQuestion").value;
 
-      if (!questionText || optionsText.length !== 5 || isNaN(correctOption)) {
+      if (!questionText || optionsText.length !== 5 || isNaN(correctOption) || !subjectName || !lectureName) {
         alert("يرجى إدخال جميع الحقول بشكل صحيح");
         return;
       }
@@ -231,18 +245,25 @@
 
         // تحديث قائمة اختيار المادة
         const subjectSelect = document.getElementById("subjectSelect");
+        const subjectSelectForQuestion = document.getElementById("subjectSelectForQuestion");
         const option = document.createElement("option");
         option.value = subject.name;
         option.textContent = subject.name;
         subjectSelect.appendChild(option);
+        subjectSelectForQuestion.appendChild(option);
       });
     }
 
-    // تحميل المحاضرات
-    async function loadLectures(subjectName) {
+    // تحميل المحاضرات الخاصة بالمادة
+    async function loadLecturesForSubject() {
+      const subjectName = document.getElementById("subjectSelect").value;
+      if (!subjectName) return;
+
       const lecturesSnapshot = await db.collection("subjects").doc(subjectName).collection("lectures").get();
-      const lectureSelect = document.getElementById("lectureSelect");
+      const lectureSelect = document.getElementById("lectureSelectForQuestion");
+      const lectureSelectForAdd = document.getElementById("lectureSelect");
       lectureSelect.innerHTML = "<option value=''>اختر المحاضرة</option>";
+      lectureSelectForAdd.innerHTML = "<option value=''>اختر المحاضرة</option>";
 
       lecturesSnapshot.forEach(doc => {
         const lecture = doc.data();
@@ -250,6 +271,7 @@
         option.value = lecture.name;
         option.textContent = lecture.name;
         lectureSelect.appendChild(option);
+        lectureSelectForAdd.appendChild(option);
       });
     }
 
