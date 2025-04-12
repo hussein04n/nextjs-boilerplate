@@ -201,11 +201,14 @@
         return;
       }
 
-      await db.collection("subjects").doc(subjectName).collection("lectures").add({
+      const subjectRef = db.collection("subjects").doc(subjectName);
+      const lecturesRef = subjectRef.collection("lectures");
+
+      await lecturesRef.add({
         name: lectureName
       });
 
-      loadLectures(); // إعادة تحميل المحاضرات بعد إضافة محاضرة جديدة
+      loadLectures(subjectName); // إعادة تحميل المحاضرات بعد إضافة محاضرة جديدة
       document.getElementById("lectureName").value = "";
     }
 
@@ -233,6 +236,24 @@
       document.getElementById("correctOption").value = "";
     }
 
+    // حذف مادة
+    async function deleteSubject(subjectId) {
+      await db.collection("subjects").doc(subjectId).delete();
+      loadSubjects(); // إعادة تحميل المواد بعد الحذف
+    }
+
+    // حذف محاضرة
+    async function deleteLecture(subjectName, lectureId) {
+      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureId).delete();
+      loadLectures(subjectName); // إعادة تحميل المحاضرات بعد الحذف
+    }
+
+    // حذف سؤال
+    async function deleteQuestion(subjectName, lectureName, questionId) {
+      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").doc(questionId).delete();
+      loadQuestions(subjectName, lectureName); // إعادة تحميل الأسئلة بعد الحذف
+    }
+
     // تحميل المواد
     async function loadSubjects() {
       const subjectsContainer = document.getElementById("subjects-container");
@@ -248,9 +269,15 @@
 
       snapshot.forEach(doc => {
         const subject = doc.data();
+        const subjectId = doc.id;
         const subjectDiv = document.createElement("div");
         subjectDiv.className = "subject";
         subjectDiv.textContent = subject.name;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "حذف المادة";
+        deleteButton.onclick = () => deleteSubject(subjectId);
+        subjectDiv.appendChild(deleteButton);
 
         const optionForLecture = document.createElement("option");
         optionForLecture.value = subject.name;
@@ -263,6 +290,30 @@
         subjectSelectForQuestion.appendChild(optionForQuestion);
 
         subjectsContainer.appendChild(subjectDiv);
+      });
+    }
+
+    // تحميل المحاضرات الخاصة بمادة معينة
+    async function loadLectures(subjectName) {
+      const lectureSelectForQuestion = document.getElementById("lectureSelectForQuestion");
+      lectureSelectForQuestion.innerHTML = "<option value=''>اختر المحاضرة</option>";
+
+      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").get();
+      snapshot.forEach(doc => {
+        const lecture = doc.data();
+        const lectureId = doc.id;
+
+        const lectureDiv = document.createElement("div");
+        lectureDiv.className = "lecture";
+        lectureDiv.textContent = lecture.name;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "حذف المحاضرة";
+        deleteButton.onclick = () => deleteLecture(subjectName, lectureId);
+        lectureDiv.appendChild(deleteButton);
+
+        lectureSelectForQuestion.innerHTML += `<option value="${lecture.name}">${lecture.name}</option>`;
+        subjectsContainer.appendChild(lectureDiv);
       });
     }
 
