@@ -2,152 +2,45 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <title>لوحة التحكم - اختبار تفاعلي</title>
+  <title>لوحة التحكم - Firebase</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(to right, #f5f7fa, #c3cfe2);
-      padding: 30px;
-      margin: 0;
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-      font-size: 32px;
-      margin-bottom: 40px;
-    }
-
-    .card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      margin: 20px auto;
-      max-width: 800px;
-      transition: transform 0.3s;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-    }
-
-    .card input, .card select, .card textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      font-size: 16px;
-    }
-
-    .card button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .card button:hover {
-      background-color: #45a049;
-    }
-
-    .subject, .lecture {
-      margin-top: 20px;
-      cursor: pointer;
-      padding: 10px;
-      border-radius: 8px;
-      background-color: #f1f1f1;
-      margin-bottom: 10px;
-    }
-
-    .subject:hover, .lecture:hover {
-      background-color: #e0e0e0;
-    }
-
-    .options {
-      list-style: none;
-      padding: 0;
-    }
-
-    .options li {
-      background: #f1f1f1;
-      padding: 12px 18px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-size: 18px;
-    }
-
-    .options li:hover {
-      background: #e0e0e0;
-    }
-
-    .options li.correct {
-      background-color: #a9f5bc;
-      color: #065f46;
-      font-weight: bold;
-    }
-
-    .options li.wrong {
-      background-color: #f8d7da;
-      color: #721c24;
-      font-weight: bold;
-    }
-
-    .options li.disabled {
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
-    #score-box {
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 40px;
-      color: #2c3e50;
-    }
+    body { font-family: 'Cairo', sans-serif; background: #f2f2f2; padding: 20px; margin: 0; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 0 10px #ccc; }
+    h2 { text-align: center; color: #333; }
+    input, textarea, select, button { width: 100%; padding: 10px; margin-top: 10px; }
+    .box { margin-top: 20px; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #ccc; }
+    .delete-btn { color: white; background: red; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; float: left; }
+    .item { padding: 8px 15px; margin-top: 10px; background: #f1f1f1; border-radius: 8px; cursor: pointer; }
+    .item:hover { background-color: #e0e0e0; }
+    .controls { text-align: center; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-  <h2>لوحة التحكم - إضافة مادة / محاضرة / سؤال</h2>
+  <div class="container">
+    <h2>لوحة التحكم - إضافة مادة/محاضرة/سؤال</h2>
 
-  <!-- إضافة مادة -->
-  <div class="card">
-    <h3>إضافة مادة جديدة</h3>
-    <input type="text" id="subjectName" placeholder="اسم المادة" />
+    <h3>إضافة مادة</h3>
+    <input type="text" id="subjectName" placeholder="أدخل اسم المادة" />
     <button onclick="addSubject()">إضافة مادة</button>
-  </div>
 
-  <!-- إضافة محاضرة -->
-  <div class="card">
-    <h3>إضافة محاضرة جديدة</h3>
-    <select id="subjectSelectForLecture">
-      <option value="">اختر المادة</option>
+    <h3>إضافة محاضرة</h3>
+    <select id="subjectSelect">
+      <option value="">اختر مادة لإضافة محاضرة</option>
     </select>
-    <input type="text" id="lectureName" placeholder="اسم المحاضرة" />
+    <input type="text" id="lectureName" placeholder="أدخل اسم المحاضرة" />
     <button onclick="addLecture()">إضافة محاضرة</button>
-  </div>
 
-  <!-- إضافة سؤال -->
-  <div class="card">
     <h3>إضافة سؤال</h3>
-    <select id="subjectSelectForQuestion">
-      <option value="">اختر المادة</option>
+    <select id="lectureSelect">
+      <option value="">اختر محاضرة لإضافة سؤال</option>
     </select>
-    <select id="lectureSelectForQuestion">
-      <option value="">اختر المحاضرة</option>
-    </select>
-    <textarea id="questionText" placeholder="نص السؤال"></textarea>
-    <textarea id="optionsText" placeholder="اكتب 5 خيارات كل واحد في سطر"></textarea>
-    <select id="correctOption">
+    <textarea id="questionText" placeholder="اكتب نص السؤال"></textarea>
+    <textarea id="optionsText" placeholder="اكتب الخيارات، كل خيار في سطر"></textarea>
+    <select id="correctAnswer">
       <option value="">اختر الإجابة الصحيحة</option>
       <option value="0">الخيار 1</option>
       <option value="1">الخيار 2</option>
@@ -156,11 +49,10 @@
       <option value="4">الخيار 5</option>
     </select>
     <button onclick="addQuestion()">إضافة سؤال</button>
+
+    <h3>جميع المواد والمحاضرات</h3>
+    <div id="subjectsList"></div>
   </div>
-
-  <div id="score-box">النتيجة: 0</div>
-
-  <div id="subjects-container"></div>
 
   <script>
     const firebaseConfig = {
@@ -176,148 +68,100 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // إضافة مادة جديدة
-    async function addSubject() {
-      const subjectName = document.getElementById("subjectName").value;
-      if (!subjectName) {
-        alert("يرجى إدخال اسم المادة");
-        return;
-      }
-
-      const subjectRef = await db.collection("subjects").add({
-        name: subjectName
-      });
-
-      loadSubjects(); // إعادة تحميل المواد بعد إضافة مادة جديدة
-      document.getElementById("subjectName").value = "";
-    }
-
-    // إضافة محاضرة
-    async function addLecture() {
-      const subjectName = document.getElementById("subjectSelectForLecture").value;
-      const lectureName = document.getElementById("lectureName").value;
-      if (!subjectName || !lectureName) {
-        alert("يرجى اختيار المادة واسم المحاضرة");
-        return;
-      }
-
-      const subjectRef = db.collection("subjects").doc(subjectName);
-      const lecturesRef = subjectRef.collection("lectures");
-
-      await lecturesRef.add({
-        name: lectureName
-      });
-
-      loadLectures(subjectName); // إعادة تحميل المحاضرات بعد إضافة محاضرة جديدة
-      document.getElementById("lectureName").value = "";
-    }
-
-    // إضافة سؤال
-    async function addQuestion() {
-      const subjectName = document.getElementById("subjectSelectForQuestion").value;
-      const lectureName = document.getElementById("lectureSelectForQuestion").value;
-      const questionText = document.getElementById("questionText").value;
-      const optionsText = document.getElementById("optionsText").value.trim().split("\n");
-      const correctOption = parseInt(document.getElementById("correctOption").value);
-
-      if (!subjectName || !lectureName || !questionText || optionsText.length !== 5 || isNaN(correctOption)) {
-        alert("يرجى إدخال جميع الحقول بشكل صحيح");
-        return;
-      }
-
-      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").add({
-        question: questionText,
-        options: optionsText,
-        correct: correctOption
-      });
-
-      document.getElementById("questionText").value = "";
-      document.getElementById("optionsText").value = "";
-      document.getElementById("correctOption").value = "";
-    }
-
-    // حذف مادة
-    async function deleteSubject(subjectId) {
-      await db.collection("subjects").doc(subjectId).delete();
-      loadSubjects(); // إعادة تحميل المواد بعد الحذف
-    }
-
-    // حذف محاضرة
-    async function deleteLecture(subjectName, lectureId) {
-      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureId).delete();
-      loadLectures(subjectName); // إعادة تحميل المحاضرات بعد الحذف
-    }
-
-    // حذف سؤال
-    async function deleteQuestion(subjectName, lectureName, questionId) {
-      await db.collection("subjects").doc(subjectName).collection("lectures").doc(lectureName).collection("questions").doc(questionId).delete();
-      loadQuestions(subjectName, lectureName); // إعادة تحميل الأسئلة بعد الحذف
-    }
-
-    // تحميل المواد
     async function loadSubjects() {
-      const subjectsContainer = document.getElementById("subjects-container");
-      const snapshot = await db.collection("subjects").get();
+      const subjectSelect = document.getElementById('subjectSelect');
+      const subjectsList = document.getElementById('subjectsList');
+      subjectSelect.innerHTML = '<option value="">اختر مادة لإضافة محاضرة</option>';
 
-      const subjectSelectForLecture = document.getElementById("subjectSelectForLecture");
-      const subjectSelectForQuestion = document.getElementById("subjectSelectForQuestion");
-
-      subjectSelectForLecture.innerHTML = "<option value=''>اختر المادة</option>";
-      subjectSelectForQuestion.innerHTML = "<option value=''>اختر المادة</option>";
-
-      subjectsContainer.innerHTML = "";
-
+      const snapshot = await db.collection('subjects').get();
+      subjectsList.innerHTML = ''; // إعادة تحميل المواد
       snapshot.forEach(doc => {
         const subject = doc.data();
-        const subjectId = doc.id;
-        const subjectDiv = document.createElement("div");
-        subjectDiv.className = "subject";
+        const subjectDiv = document.createElement('div');
+        subjectDiv.classList.add('item');
         subjectDiv.textContent = subject.name;
 
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "حذف المادة";
-        deleteButton.onclick = () => deleteSubject(subjectId);
-        subjectDiv.appendChild(deleteButton);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.textContent = 'حذف';
+        deleteBtn.onclick = () => deleteSubject(doc.id);
 
-        const optionForLecture = document.createElement("option");
-        optionForLecture.value = subject.name;
-        optionForLecture.textContent = subject.name;
-        subjectSelectForLecture.appendChild(optionForLecture);
+        subjectDiv.appendChild(deleteBtn);
+        subjectsList.appendChild(subjectDiv);
 
-        const optionForQuestion = document.createElement("option");
-        optionForQuestion.value = subject.name;
-        optionForQuestion.textContent = subject.name;
-        subjectSelectForQuestion.appendChild(optionForQuestion);
-
-        subjectsContainer.appendChild(subjectDiv);
+        // إضافة المادة في قائمة الاختيارات
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = subject.name;
+        subjectSelect.appendChild(option);
       });
     }
 
-    // تحميل المحاضرات الخاصة بمادة معينة
-    async function loadLectures(subjectName) {
-      const lectureSelectForQuestion = document.getElementById("lectureSelectForQuestion");
-      lectureSelectForQuestion.innerHTML = "<option value=''>اختر المحاضرة</option>";
+    async function addSubject() {
+      const subjectName = document.getElementById('subjectName').value;
+      if (!subjectName) return alert('يرجى إدخال اسم المادة');
 
-      const snapshot = await db.collection("subjects").doc(subjectName).collection("lectures").get();
+      await db.collection('subjects').add({ name: subjectName });
+      document.getElementById('subjectName').value = '';
+      loadSubjects();
+    }
+
+    async function deleteSubject(subjectId) {
+      const subjectDoc = db.collection('subjects').doc(subjectId);
+      const lecturesSnapshot = await subjectDoc.collection('lectures').get();
+      lecturesSnapshot.forEach(doc => {
+        doc.ref.delete(); // حذف المحاضرات المرتبطة
+      });
+      await subjectDoc.delete();
+      loadSubjects();
+    }
+
+    async function addLecture() {
+      const subjectId = document.getElementById('subjectSelect').value;
+      const lectureName = document.getElementById('lectureName').value;
+      if (!subjectId || !lectureName) return alert('يرجى تحديد المادة وإدخال اسم المحاضرة');
+
+      await db.collection('subjects').doc(subjectId).collection('lectures').add({ name: lectureName });
+      document.getElementById('lectureName').value = '';
+      loadSubjects();
+    }
+
+    async function addQuestion() {
+      const lectureId = document.getElementById('lectureSelect').value;
+      const questionText = document.getElementById('questionText').value;
+      const optionsText = document.getElementById('optionsText').value;
+      const correctAnswer = parseInt(document.getElementById('correctAnswer').value);
+
+      if (!lectureId || !questionText || !optionsText || isNaN(correctAnswer)) return alert('يرجى ملء جميع الحقول');
+
+      const options = optionsText.split('\n');
+      await db.collection('lectures').doc(lectureId).collection('questions').add({
+        question: questionText,
+        options: options,
+        correct: correctAnswer
+      });
+      document.getElementById('questionText').value = '';
+      document.getElementById('optionsText').value = '';
+      document.getElementById('correctAnswer').value = '';
+      loadSubjects();
+    }
+
+    async function loadLectures(subjectId) {
+      const lectureSelect = document.getElementById('lectureSelect');
+      lectureSelect.innerHTML = '<option value="">اختر محاضرة لإضافة سؤال</option>';
+
+      const snapshot = await db.collection('subjects').doc(subjectId).collection('lectures').get();
       snapshot.forEach(doc => {
         const lecture = doc.data();
-        const lectureId = doc.id;
-
-        const lectureDiv = document.createElement("div");
-        lectureDiv.className = "lecture";
-        lectureDiv.textContent = lecture.name;
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "حذف المحاضرة";
-        deleteButton.onclick = () => deleteLecture(subjectName, lectureId);
-        lectureDiv.appendChild(deleteButton);
-
-        lectureSelectForQuestion.innerHTML += `<option value="${lecture.name}">${lecture.name}</option>`;
-        subjectsContainer.appendChild(lectureDiv);
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = lecture.name;
+        lectureSelect.appendChild(option);
       });
     }
 
-    loadSubjects(); // تحميل المواد عند تحميل الصفحة
+    loadSubjects();
   </script>
+
 </body>
 </html>
