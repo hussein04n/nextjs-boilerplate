@@ -1,0 +1,82 @@
+<style>
+  .question-card {
+    background-color: #fff9e6;
+    border: 2px solid #ffcccc;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+    direction: ltr;
+  }
+
+  .question-title {
+    background-color: red;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .question-text {
+    color: #002060;
+    font-weight: bold;
+  }
+
+  .options {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+
+  .options li {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+  }
+
+  .options li.correct {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .options li.wrong {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .result-msg {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .result-msg.correct {
+    color: green;
+  }
+
+  .result-msg.wrong {
+    color: red;
+  }
+</style>
+
+<script>
+  function checkAnswer(selected, isCorrect) {
+    const card = selected.closest(".question-card");
+    const options = card.querySelectorAll("li");
+    const result = card.querySelector(".result-msg");
+
+    options.forEach(opt => opt.classList.remove("correct", "wrong"));
+
+    if (isCorrect) {
+      selected.classList.add("correct");
+      result.textContent = "إجابة صحيحة!";
+      result.className = "result-msg correct";
+    } else {
+      selected.classList.add("wrong");
+      result.textContent = "إجابة خاطئة، حاول مرة أخرى.";
+      result.className = "result-msg wrong";
+    }
+  }
+</script>
