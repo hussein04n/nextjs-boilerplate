@@ -2,28 +2,73 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>استثمار الروبل</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: "Tajawal", sans-serif; background: #1e1b16; color: #ffd700; margin: 0; padding: 1rem; }
+    input, button { padding: 0.5rem; margin: 0.3rem 0; border-radius: 5px; border: none; }
+    button { background: #ffd700; color: #1e1b16; cursor: pointer; }
+    .form-section { max-width: 400px; margin: auto; }
+    input[readonly] { background: #333; color: #eee; }
+    #profit-msg, #dash-message { margin-top: 0.5rem; }
+    #withdraw-requests div { border: 1px solid #ffd700; padding: 0.5rem; margin-bottom: 0.5rem; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>استثمار الروبل</h1>
-    <nav>
-      <a href="#">الرئيسية</a>
-      <a href="#login">تسجيل الدخول</a>
-      <a href="#register">التسجيل</a>
-    </nav>
-  </header>
 
-  <section class="hero">
-    <h2>استثمر أموالك بذكاء وحقق أرباحاً يومية</h2>
-    <p>نظام استثمار آمن عبر الروبل الروسي وPayeer</p>
-    <a class="btn" href="#register">ابدأ الآن</a>
-  </section>
+<h1>استثمار الروبل</h1>
 
-  <footer>
-    <p>جميع الحقوق محفوظة &copy; 2025</p>
-  </footer>
+<!-- تسجيل الدخول للمستخدم -->
+<section id="user-login" class="form-section">
+  <h2>تسجيل الدخول</h2>
+  <input type="email" id="user-email" placeholder="البريد الإلكتروني" />
+  <input type="password" id="user-password" placeholder="كلمة المرور" />
+  <button id="user-login-btn">دخول المستخدم</button>
+</section>
+
+<!-- تسجيل دخول لوحة التحكم -->
+<section id="admin-login" class="form-section" style="display:none;">
+  <h2>تسجيل دخول لوحة التحكم</h2>
+  <input type="email" id="admin-email" placeholder="البريد الإلكتروني" />
+  <input type="password" id="admin-password" placeholder="كلمة المرور" />
+  <button id="admin-login-btn">دخول اللوحة</button>
+  <p id="admin-login-msg"></p>
+</section>
+
+<!-- لوحة المستخدم -->
+<section id="dashboard" class="form-section" style="display:none;">
+  <h2>لوحة التحكم</h2>
+  <p><strong>الرصيد:</strong> <span id="user-balance">0</span> ₽</p>
+  <p><strong>رابط الإحالة:</strong></p>
+  <input type="text" id="ref-link" readonly />
+  <button id="copy-ref">نسخ الرابط</button>
+
+  <h3>إيداع روبل عبر Payeer</h3>
+  <input type="number" id="deposit-amount" placeholder="أدخل المبلغ بالروبل" />
+  <button id="deposit-btn">إيداع الآن</button>
+
+  <h3>طلب سحب</h3>
+  <button id="withdraw-btn">طلب سحب</button>
+
+  <p id="dash-message"></p>
+  <button id="logout-user">تسجيل خروج</button>
+</section>
+
+<!-- لوحة تحكم المطور -->
+<section id="admin-panel" class="form-section" style="display:none;">
+  <h2>لوحة تحكم المطور</h2>
+
+  <h3>طلبات السحب</h3>
+  <div id="withdraw-requests">جاري تحميل الطلبات...</div>
+
+  <h3>تعديل نسبة الربح (%)</h3>
+  <input type="number" id="profit-percent" min="0" max="100" />
+  <button id="save-profit">حفظ</button>
+  <p id="profit-msg"></p>
+  <button id="logout-admin">تسجيل خروج</button>
+</section>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="main.js"></script>
 </body>
 </html>
