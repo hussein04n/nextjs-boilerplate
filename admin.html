@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #ff9900;
+      color: white;
+    }
+    button {
+      margin-right: 5px;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button.reject {
+      background-color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin Panel</h2>
+    <button onclick="logout()">Logout</button>
+
+    <h3>Users</h3>
+    <table id="users-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Balance (RUB)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Users will be listed here -->
+      </tbody>
+    </table>
+
+    <h3>Withdrawal Requests</h3>
+    <table id="withdrawal-table">
+      <thead>
+        <tr>
+          <th>User Email</th>
+          <th>Amount (RUB)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Requests will be listed here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const db = firebase.firestore();
+
+    // قم بتعيين هذا المعرف للـ admin الحقيقي فقط
+    const ADMIN_UID = "YOUR_ADMIN_UID_HERE";
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      if (user.uid !== ADMIN_UID) {
+        alert("Access denied. Admins only.");
+        firebase.auth().signOut();
+        return;
+      }
+      loadUsers();
+      loadWithdrawRequests();
+    });
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+    function loadUsers() {
+      const tbody = document.getElementById("users-table").querySelector("tbody");
+      tbody.innerHTML = "";
+      db.collection("users").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const user = doc.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${user.email || doc.id}</td><td>${user.balance || 0}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function loadWithdrawRequests() {
+      const tbody = document.getElementById("withdrawal-table").querySelector("tbody");
+      tbody.innerHTML = "";
+      db.collection("withdrawals").where("status", "==", "pending").get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const request = doc.data();
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${request.email}</td>
+              <td>${request.amount}</td>
+              <td>
+                <button onclick="approveWithdrawal('${doc.id}')">Approve</button>
+                <button class="reject" onclick="rejectWithdrawal('${doc.id}')">Reject</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    function approveWithdrawal(id) {
+      const requestRef = db.collection("withdrawals").doc(id);
+      requestRef.get().then(doc => {
+        if (!doc.exists) return alert("Request not found");
+
+        const data = doc.data();
+        const userRef = db.collection("users").doc(data.userId);
+
+        userRef.update({
+          balance: firebase.firestore.FieldValue.increment(-data.amount)
+        }).then(() => {
+          requestRef.update({ status: "approved" });
+          alert("Withdrawal approved.");
+          loadWithdrawRequests();
+          loadUsers();
+        });
+      });
+    }
+
+    function rejectWithdrawal(id) {
+      const requestRef = db.collection("withdrawals").doc(id);
+      requestRef.update({ status: "rejected" }).then(() => {
+        alert("Withdrawal rejected.");
+        loadWithdrawRequests();
+      });
+    }
+  </script>
+</body>
+</html>
