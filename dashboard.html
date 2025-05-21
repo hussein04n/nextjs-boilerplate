@@ -85,11 +85,15 @@
         const currentBalance = doc.data().balance || 0;
         if (value > currentBalance) return alert("Insufficient balance");
 
-        userRef.update({
-          balance: firebase.firestore.FieldValue.increment(-value)
+        // إنشاء طلب سحب مع الحالة "pending"
+        db.collection("withdrawals").add({
+          userId: currentUser.uid,
+          email: currentUser.email,
+          amount: value,
+          status: "pending",
+          createdAt: firebase.firestore.Timestamp.now()
         }).then(() => {
-          alert("Withdrawal request sent (for approval)");
-          updateBalanceDisplay(currentBalance - value);
+          alert("Withdrawal request sent for approval.");
         });
       });
     }
