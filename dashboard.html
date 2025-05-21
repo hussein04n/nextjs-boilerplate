@@ -11,6 +11,14 @@
     <h2>Welcome, <span id="user-email"></span></h2>
     <p>Your Balance: <span id="balance">0</span> RUB</p>
 
+    <button onclick="claimBonus()">Daily Bonus</button>
+    <button onclick="deposit()">Recharge</button>
+    <button onclick="withdraw()">Withdraw</button>
+
+    <p>Your Referral Link:</p>
+    <input type="text" id="referral-link" readonly style="width:100%;" />
+
+    <br><br>
     <button onclick="logout()">Logout</button>
   </div>
 
@@ -18,18 +26,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.firestore();
+    let currentUser;
 
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
+        currentUser = user;
         document.getElementById("user-email").innerText = user.email;
+        document.getElementById("referral-link").value = window.location.origin + "/?ref=" + user.uid;
 
         const userRef = db.collection("users").doc(user.uid);
-
         userRef.get().then(doc => {
           if (!doc.exists) {
-            userRef.set({ balance: 0 });
+            userRef.set({ balance: 0, lastBonus: null });
             document.getElementById("balance").innerText = "0";
           } else {
             document.getElementById("balance").innerText = doc.data().balance || "0";
@@ -41,9 +52,65 @@
       }
     });
 
+    function updateBalanceDisplay(newBalance) {
+      document.getElementById("balance").innerText = newBalance;
+    }
+
     function logout() {
       firebase.auth().signOut().then(() => {
         window.location.href = "index.html";
+      });
+    }
+
+    function deposit() {
+      const amount = prompt("Enter amount to deposit (RUB):");
+      const value = parseFloat(amount);
+      if (!value || value <= 0) return alert("Invalid amount");
+
+      const userRef = db.collection("users").doc(currentUser.uid);
+      userRef.update({
+        balance: firebase.firestore.FieldValue.increment(value)
+      }).then(() => {
+        userRef.get().then(doc => updateBalanceDisplay(doc.data().balance));
+      });
+    }
+
+    function withdraw() {
+      const amount = prompt("Enter amount to withdraw (RUB):");
+      const value = parseFloat(amount);
+      if (!value || value <= 0) return alert("Invalid amount");
+
+      const userRef = db.collection("users").doc(currentUser.uid);
+      userRef.get().then(doc => {
+        const currentBalance = doc.data().balance || 0;
+        if (value > currentBalance) return alert("Insufficient balance");
+
+        userRef.update({
+          balance: firebase.firestore.FieldValue.increment(-value)
+        }).then(() => {
+          alert("Withdrawal request sent (for approval)");
+          updateBalanceDisplay(currentBalance - value);
+        });
+      });
+    }
+
+    function claimBonus() {
+      const userRef = db.collection("users").doc(currentUser.uid);
+      const now = new Date();
+
+      userRef.get().then(doc => {
+        const lastBonus = doc.data().lastBonus ? new Date(doc.data().lastBonus.seconds * 1000) : null;
+        if (!lastBonus || (now - lastBonus) > 86400000) {
+          userRef.update({
+            balance: firebase.firestore.FieldValue.increment(1),
+            lastBonus: firebase.firestore.Timestamp.now()
+          }).then(() => {
+            alert("You received 1 RUB bonus!");
+            userRef.get().then(doc => updateBalanceDisplay(doc.data().balance));
+          });
+        } else {
+          alert("You already claimed your daily bonus.");
+        }
       });
     }
   </script>
