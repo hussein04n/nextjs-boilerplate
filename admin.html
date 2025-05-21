@@ -2,70 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Panel</title>
+  <title>Admin Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #ff9900;
-      color: white;
-    }
-    button {
-      margin-right: 5px;
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    button.reject {
-      background-color: #f44336;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Admin Panel</h2>
-    <button onclick="logout()">Logout</button>
+  <h1>Admin Dashboard</h1>
+  <button onclick="logout()">Logout</button>
+  <h2>Users</h2>
+  <table id="users-table">
+    <thead>
+      <tr><th>Email</th><th>Balance (RUB)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <h3>Users</h3>
-    <table id="users-table">
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Balance (RUB)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Users will be listed here -->
-      </tbody>
-    </table>
-
-    <h3>Withdrawal Requests</h3>
-    <table id="withdrawal-table">
-      <thead>
-        <tr>
-          <th>User Email</th>
-          <th>Amount (RUB)</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Requests will be listed here -->
-      </tbody>
-    </table>
-  </div>
+  <h2>Withdrawal Requests</h2>
+  <table id="withdrawals-table">
+    <thead>
+      <tr><th>User ID</th><th>Amount (RUB)</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -75,22 +32,21 @@
   <script>
     const db = firebase.firestore();
 
-    // قم بتعيين هذا المعرف للـ admin الحقيقي فقط
-    const ADMIN_UID = "YOUR_ADMIN_UID_HERE";
+    // طلب إذن الإشعارات
+    function requestNotificationPermission() {
+      if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }
+    }
 
-    firebase.auth().onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
+    // إظهار إشعار نظام
+    function notify(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body });
       }
-      if (user.uid !== ADMIN_UID) {
-        alert("Access denied. Admins only.");
-        firebase.auth().signOut();
-        return;
-      }
-      loadUsers();
-      loadWithdrawRequests();
-    });
+    }
 
     function logout() {
       firebase.auth().signOut().then(() => {
@@ -99,64 +55,78 @@
     }
 
     function loadUsers() {
-      const tbody = document.getElementById("users-table").querySelector("tbody");
+      const tbody = document.querySelector("#users-table tbody");
       tbody.innerHTML = "";
       db.collection("users").get().then(snapshot => {
         snapshot.forEach(doc => {
-          const user = doc.data();
+          const data = doc.data();
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${user.email || doc.id}</td><td>${user.balance || 0}</td>`;
+          tr.innerHTML = `<td>${data.email || "N/A"}</td><td>${(data.balance || 0).toFixed(2)}</td>`;
           tbody.appendChild(tr);
         });
       });
     }
 
-    function loadWithdrawRequests() {
-      const tbody = document.getElementById("withdrawal-table").querySelector("tbody");
+    function loadWithdrawals() {
+      const tbody = document.querySelector("#withdrawals-table tbody");
       tbody.innerHTML = "";
-      db.collection("withdrawals").where("status", "==", "pending").get()
-        .then(snapshot => {
-          snapshot.forEach(doc => {
-            const request = doc.data();
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${request.email}</td>
-              <td>${request.amount}</td>
-              <td>
-                <button onclick="approveWithdrawal('${doc.id}')">Approve</button>
-                <button class="reject" onclick="rejectWithdrawal('${doc.id}')">Reject</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
+      db.collection("withdrawals").where("status", "==", "pending").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${data.userId}</td>
+            <td>${data.amount.toFixed(2)}</td>
+            <td>${data.status}</td>
+            <td>
+              <button onclick="approveWithdrawal('${doc.id}', '${data.userId}', ${data.amount})">Approve</button>
+              <button onclick="rejectWithdrawal('${doc.id}')">Reject</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
+      });
     }
 
-    function approveWithdrawal(id) {
-      const requestRef = db.collection("withdrawals").doc(id);
-      requestRef.get().then(doc => {
-        if (!doc.exists) return alert("Request not found");
+    function approveWithdrawal(withdrawalId, userId, amount) {
+      const userRef = db.collection("users").doc(userId);
+      const withdrawalRef = db.collection("withdrawals").doc(withdrawalId);
 
-        const data = doc.data();
-        const userRef = db.collection("users").doc(data.userId);
+      userRef.get().then(doc => {
+        if (!doc.exists) return alert("User not found");
+
+        const balance = doc.data().balance || 0;
+        if (balance < amount) {
+          alert("User balance is insufficient");
+          return;
+        }
 
         userRef.update({
-          balance: firebase.firestore.FieldValue.increment(-data.amount)
+          balance: firebase.firestore.FieldValue.increment(-amount)
         }).then(() => {
-          requestRef.update({ status: "approved" });
-          alert("Withdrawal approved.");
-          loadWithdrawRequests();
-          loadUsers();
+          withdrawalRef.update({ status: "approved" })
+            .then(() => {
+              notify("Withdrawal Approved", `User ${userId} withdrew ${amount.toFixed(2)} RUB`);
+              alert("Withdrawal approved and balance deducted");
+              loadUsers();
+              loadWithdrawals();
+            });
         });
       });
     }
 
-    function rejectWithdrawal(id) {
-      const requestRef = db.collection("withdrawals").doc(id);
-      requestRef.update({ status: "rejected" }).then(() => {
-        alert("Withdrawal rejected.");
-        loadWithdrawRequests();
-      });
+    function rejectWithdrawal(withdrawalId) {
+      db.collection("withdrawals").doc(withdrawalId).update({ status: "rejected" })
+        .then(() => {
+          alert("Withdrawal rejected");
+          loadWithdrawals();
+        });
+    }
+
+    window.onload = () => {
+      requestNotificationPermission();
+      loadUsers();
+      loadWithdrawals();
     }
   </script>
 </body>
