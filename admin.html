@@ -30,6 +30,13 @@
   <script src="firebase-config.js"></script>
 
   <script>
+    firebase.auth().onAuthStateChanged(user => {
+  if (!user || user.uid !== "FwC1BWH9e3Ni5EsHvnCvXZWpcU13") {
+    alert("Unauthorized! Redirecting to login.");
+    window.location.href = "index.html";
+  }
+});
+
     const db = firebase.firestore();
 
     // طلب إذن الإشعارات
