@@ -1,33 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bonapetite Game Clone - Login</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>محمل YouTube سريع</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4a90e2, #50e3c2);
+      color: white;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: white;
+      color: #4a90e2;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #e3f2fd;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>Welcome to Bonapetite Game</h2>
-
-    <div id="login-form">
-      <input type="email" id="login-email" placeholder="Email" />
-      <input type="password" id="login-password" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <p>Don't have an account? <a href="#" onclick="toggleForms()">Register</a></p>
-    </div>
-
-    <div id="register-form" style="display: none;">
-      <input type="email" id="register-email" placeholder="Email" />
-      <input type="password" id="register-password" placeholder="Password" />
-      <button onclick="register()">Register</button>
-      <p>Already have an account? <a href="#" onclick="toggleForms()">Login</a></p>
-    </div>
+    <h1>محوّل YouTube السريع</h1>
+    <input type="text" id="url" placeholder="أدخل رابط YouTube هنا">
+    <br>
+    <button onclick="download('mp4')">تحميل MP4</button>
+    <button onclick="download('mp3')">تحميل MP3</button>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="main.js"></script>
+  <script>
+    function download(format) {
+      const url = document.getElementById('url').value.trim();
+      if (!url || (!url.includes('youtube.com') && !url.includes('youtu.be'))) {
+        alert('أدخل رابط YouTube صحيح.');
+        return;
+      }
+
+      let site = '';
+
+      if (format === 'mp3') {
+        site = `https://ytmate.lc/youtube-to-mp3/${encodeURIComponent(url)}`;
+      } else {
+        site = `https://ssyoutube.com/watch?v=${getVideoId(url)}`;
+      }
+
+      window.open(site, '_blank');
+    }
+
+    function getVideoId(url) {
+      const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+      return match ? match[1] : '';
+    }
+  </script>
 </body>
 </html>
